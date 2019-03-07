@@ -3,6 +3,7 @@ import * as React from "react";
 import { Value, Editor as TEditor, Schema, Node } from "slate";
 import { Editor } from "slate-react";
 import styled, { ThemeProvider } from "styled-components";
+
 import type { Plugin, SearchResult } from "./types";
 import { light as lightTheme, dark as darkTheme } from "./theme";
 import defaultSchema from "./schema";
@@ -12,7 +13,7 @@ import Flex from "./components/Flex";
 import Toolbar from "./components/Toolbar";
 import BlockInsert from "./components/BlockInsert";
 import Contents from "./components/Contents";
-import Markdown from "./serializer";
+import Html from "./serializer";
 import createPlugins from "./plugins";
 import commands from "./commands";
 import queries from "./queries";
@@ -30,6 +31,8 @@ type Props = {
   readOnly?: boolean,
   toc?: boolean,
   dark?: boolean,
+  hideToolbar?: boolean,
+  hideBlockInsert?: boolean,
   schema?: Schema,
   theme?: Object,
   uploadImage?: (file: File) => Promise<string>,
@@ -51,7 +54,107 @@ type State = {
   editorLoaded: boolean,
 };
 
-class RichMarkdownEditor extends React.PureComponent<Props, State> {
+const StyledEditor = styled(Editor)`
+  background: ${({ theme }) => theme.background};
+  font-family: ${({ theme }) => theme.fontFamily};
+  font-weight: ${({ theme }) => theme.fontWeight};
+  font-size: 1em;
+  line-height: 1.7em;
+  width: 100%;
+  color: ${({ theme }) => theme.text};
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 500;
+  }
+
+  ul,
+  ol {
+    margin: 0 0.1em;
+    padding-left: 1em;
+
+    ul,
+    ol {
+      margin: 0.1em;
+    }
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  p {
+    position: relative;
+    margin: 0;
+  }
+
+  a {
+    color: ${({ theme }) => theme.link};
+  }
+
+  a:hover {
+    text-decoration: ${({ readOnly }) => (readOnly ? "underline" : "none")};
+  }
+
+  li p {
+    display: inline;
+    margin: 0;
+  }
+
+  .todoList {
+    list-style: none;
+    padding-left: 0;
+
+    .todoList {
+      padding-left: 1em;
+    }
+  }
+
+  .todo {
+    span:last-child:focus {
+      outline: none;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid ${({ theme }) => theme.quote};
+    margin: 0;
+    padding-left: 10px;
+    font-style: italic;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  tr {
+    border-bottom: 1px solid #eee;
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  th,
+  td {
+    padding: 5px 20px 5px 0;
+  }
+
+  b,
+  strong {
+    font-weight: 600;
+  }
+`;
+
+class RichHtmlEditor extends React.PureComponent<Props, State> {
   static defaultProps = {
     defaultValue: "",
     placeholder: "Write something nice…",
@@ -79,7 +182,7 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
 
     this.state = {
       editorLoaded: false,
-      editorValue: Markdown.deserialize(props.defaultValue),
+      editorValue: Html.deserialize(props.defaultValue),
     };
   }
 
@@ -88,13 +191,13 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
     window.addEventListener("keydown", this.handleKeyDown);
 
     if (this.props.autoFocus) {
-      this.focusAtEnd();
+      this.focusAtStart();
     }
   }
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.readOnly && !this.props.readOnly && this.props.autoFocus) {
-      this.focusAtEnd();
+      this.focusAtStart();
     }
   }
 
@@ -109,14 +212,14 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
   };
 
   value = (): string => {
-    return Markdown.serialize(this.state.editorValue);
+    return Html.serialize(this.state.editorValue);
   };
 
   handleChange = ({ value }: { value: Value }) => {
     if (this.state.editorValue !== value) {
       this.setState({ editorValue: value }, state => {
         if (this.props.onChange && !this.props.readOnly) {
-          this.props.onChange(this.value);
+          this.props.onChange(this.value, value);
         }
       });
     }
@@ -244,6 +347,8 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
       defaultValue,
       autoFocus,
       plugins,
+      hideToolbar,
+      hideBlockInsert,
       ...rest
     } = this.props;
 
@@ -267,11 +372,13 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
               this.state.editorLoaded &&
               this.editor && <Contents editor={this.editor} />}
             {!readOnly &&
-              this.editor && (
+              this.editor &&
+              !hideToolbar && (
                 <Toolbar value={this.state.editorValue} editor={this.editor} />
               )}
             {!readOnly &&
-              this.editor && (
+              this.editor &&
+              !hideBlockInsert && (
                 <BlockInsert
                   editor={this.editor}
                   onInsertImage={this.insertImageFile}
@@ -306,96 +413,4 @@ class RichMarkdownEditor extends React.PureComponent<Props, State> {
   };
 }
 
-const StyledEditor = styled(Editor)`
-  background: ${props => props.theme.background};
-  font-family: ${props => props.theme.fontFamily};
-  font-weight: ${props => props.theme.fontWeight};
-  font-size: 1em;
-  line-height: 1.7em;
-  width: 100%;
-  color: ${props => props.theme.text};
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-weight: 500;
-  }
-
-  ul,
-  ol {
-    margin: 0 0.1em;
-    padding-left: 1em;
-
-    ul,
-    ol {
-      margin: 0.1em;
-    }
-  }
-
-  p {
-    position: relative;
-    margin: 0;
-  }
-
-  a {
-    color: ${props => props.theme.link};
-  }
-
-  a:hover {
-    text-decoration: ${props => (props.readOnly ? "underline" : "none")};
-  }
-
-  li p {
-    display: inline;
-    margin: 0;
-  }
-
-  .todoList {
-    list-style: none;
-    padding-left: 0;
-
-    .todoList {
-      padding-left: 1em;
-    }
-  }
-
-  .todo {
-    span:last-child:focus {
-      outline: none;
-    }
-  }
-
-  blockquote {
-    border-left: 3px solid ${props => props.theme.quote};
-    margin: 0;
-    padding-left: 10px;
-    font-style: italic;
-  }
-
-  table {
-    border-collapse: collapse;
-  }
-
-  tr {
-    border-bottom: 1px solid #eee;
-  }
-
-  th {
-    font-weight: bold;
-  }
-
-  th,
-  td {
-    padding: 5px 20px 5px 0;
-  }
-
-  b,
-  strong {
-    font-weight: 600;
-  }
-`;
-
-export default RichMarkdownEditor;
+export default RichHtmlEditor;
