@@ -51,7 +51,7 @@ function Heading(props: Props) {
           name={slugish}
           onCopy={() =>
             editor.props.onShowToast &&
-            editor.props.onShowToast("Link copied to clipboard")
+            editor.props.onShowToast(null, "Link copied to clipboard")
           }
           text={`${window.location.origin}${pathToHeading}`}
         >
@@ -126,7 +126,7 @@ export const StyledHeading = styled(Heading)`
   }
 `;
 export const Heading1 = (props: SlateNodeProps) => (
-  <StyledHeading component="h1" {...props} />
+  <StyledHeading component="h1" className="editor-h1" {...props} />
 );
 export const Heading2 = (props: SlateNodeProps) => (
   <StyledHeading component="h2" {...props} />

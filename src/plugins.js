@@ -3,8 +3,7 @@ import { Node, Editor } from "slate";
 import TrailingBlock from "@wikifactory/slate-trailing-block";
 import EditCode from "@wikifactory/slate-edit-code";
 import EditBlockquote from "@wikifactory/slate-edit-blockquote";
-import InsertImages from "slate-drop-or-paste-images";
-import PasteLinkify from "slate-paste-linkify";
+import InsertImages from "cyber-slate-drop-or-paste-images";
 import CollapseOnEscape from "slate-collapse-on-escape";
 import Prism from "golery-slate-prism";
 import Placeholder from "./plugins/Placeholder";
@@ -12,8 +11,9 @@ import EditList from "./plugins/EditList";
 import CollapsableHeadings from "./plugins/CollapsableHeadings";
 import KeyboardBehavior from "./plugins/KeyboardBehavior";
 import KeyboardShortcuts from "./plugins/KeyboardShortcuts";
-import MarkdownShortcuts from "./plugins/MarkdownShortcuts";
-import MarkdownPaste from "./plugins/MarkdownPaste";
+// import MarkdownShortcuts from "./plugins/MarkdownShortcuts";
+// import PasteLinkify from "slate-paste-linkify";
+import HtmlPaste from "./plugins/HtmlPaste";
 import Ellipsis from "./plugins/Ellipsis";
 import Embeds from "./plugins/Embeds";
 import Nodes from "./nodes.js";
@@ -26,6 +26,52 @@ import "prismjs/components/prism-csharp";
 import "prismjs/components/prism-php";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-java";
+
+import isUrl from "is-url";
+
+function PasteLinkify(options = {}) {
+  const {
+    isActiveQuery = "isLinkActive",
+    wrapCommand = "wrapLink",
+    unwrapCommand = "unwrapLink",
+  } = options;
+
+  return {
+    onCommand(command, change, next) {
+      const { type, args } = command;
+      const { value } = change;
+      const { selection } = value;
+      const { isCollapsed, start } = selection;
+      let url;
+
+      if (
+        (type === "insertText" && isUrl((url = args[0]))) ||
+        (type === "insertFragment" && isUrl((url = args[0].text)))
+      ) {
+        // If there is already a link active, unwrap it so that we don't end up
+        // with a confusing overlapping inline situation.
+        if (change.query(isActiveQuery, value)) {
+          change.command(unwrapCommand);
+        }
+
+        // If the selection is collapsed, we need to allow the default inserting
+        // to occur instead of just wrapping the existing text in a link.
+        if (isCollapsed) {
+          next();
+          change
+            .moveAnchorTo(start.offset)
+            .moveFocusTo(start.offset + url.length);
+        }
+
+        // Wrap the selection in a link, and collapse to the end of it.
+        change.command(wrapCommand, url).moveToEnd();
+        return;
+      }
+
+      next();
+    },
+  };
+}
 
 const createPlugins = ({ placeholder, getLinkComponent }: *) => {
   return [
@@ -70,8 +116,8 @@ const createPlugins = ({ placeholder, getLinkComponent }: *) => {
     CollapsableHeadings(),
     KeyboardBehavior(),
     KeyboardShortcuts(),
-    MarkdownShortcuts(),
-    MarkdownPaste(),
+    // MarkdownShortcuts(),
+    HtmlPaste(),
     EditList,
     Ellipsis(),
     TrailingBlock({ type: "paragraph" }),

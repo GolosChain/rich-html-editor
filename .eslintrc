@@ -15,7 +15,7 @@
     "import/no-unresolved": [
       "error",
       {
-        "ignore": ["slate-drop-or-paste-images"]
+        "ignore": ["cyber-slate-drop-or-paste-images"]
       }
     ],
     "jsx-a11y/href-no-hash": "off",
