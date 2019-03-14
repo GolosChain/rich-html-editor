@@ -48,7 +48,7 @@ export const base = {
 
 export const light: Theme = {
   ...base,
-  background: colors.white,
+  background: "transparent",
   text: colors.almostBlack,
   code: colors.lightBlack,
 
