@@ -143,12 +143,14 @@ const rules = [
     // Special case for images, to grab their src.
     deserialize(el, next) {
       if (el.tagName.toLowerCase() === "img") {
+        console.log('deserialize', el)
         return {
           object: "block",
           type: "image",
           nodes: next(el.childNodes),
           data: {
             src: el.getAttribute("src"),
+            alt: el.getAttribute("alt"),
           },
         };
       }
@@ -157,8 +159,10 @@ const rules = [
       if (obj.object === "block") {
         switch (obj.type) {
           case "image": {
+            console.log('serialize', obj)
             const src = obj.data.get("src");
-            return <img src={src} />;
+            const alt = obj.data.get("alt");
+            return <img src={src} alt={alt} />;
           }
         }
       }
