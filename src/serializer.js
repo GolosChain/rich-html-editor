@@ -149,6 +149,7 @@ const rules = [
           nodes: next(el.childNodes),
           data: {
             src: el.getAttribute("src"),
+            alt: el.getAttribute("alt"),
           },
         };
       }
@@ -158,7 +159,8 @@ const rules = [
         switch (obj.type) {
           case "image": {
             const src = obj.data.get("src");
-            return <img src={src} />;
+            const alt = obj.data.get("alt");
+            return <img src={src} alt={alt} />;
           }
         }
       }
