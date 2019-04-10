@@ -3,7 +3,7 @@ import { Node, Editor } from "slate";
 import TrailingBlock from "@wikifactory/slate-trailing-block";
 import EditCode from "@wikifactory/slate-edit-code";
 import EditBlockquote from "@wikifactory/slate-edit-blockquote";
-import InsertImages from "slate-drop-or-paste-images";
+import InsertImages from "cyber-slate-drop-or-paste-images";
 import CollapseOnEscape from "slate-collapse-on-escape";
 import Prism from "golery-slate-prism";
 import Placeholder from "./plugins/Placeholder";

@@ -43,7 +43,7 @@ type Props = {
   onImageUploadStop?: () => *,
   onSearchLink?: (term: string) => Promise<SearchResult[]>,
   onClickLink?: (href: string) => *,
-  onShowToast?: (message: string) => *,
+  onShowToast?: (err: string, message: string) => *,
   getLinkComponent?: Node => ?React.ComponentType<*>,
   className?: string,
   style?: Object,

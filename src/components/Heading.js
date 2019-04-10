@@ -51,7 +51,7 @@ function Heading(props: Props) {
           name={slugish}
           onCopy={() =>
             editor.props.onShowToast &&
-            editor.props.onShowToast("Link copied to clipboard")
+            editor.props.onShowToast(null, "Link copied to clipboard")
           }
           text={`${window.location.origin}${pathToHeading}`}
         >

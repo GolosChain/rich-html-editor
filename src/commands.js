@@ -75,7 +75,7 @@ const commands = {
 
     // withoutSaving prevents this op from being added to the history, so you can't
     // undo back to showing the upload placeholder. 'onChange' addition is a hack
-    // to get around a bug in slate-drop-or-paste-images
+    // to get around a bug in slate-slate-drop-or-paste-images
     editor.withoutSaving(editor => {
       // now we have a placeholder, start the image upload. This could be very fast
       // or take multiple seconds. The user may further edit the content during this time.
